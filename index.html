@@ -41,13 +41,15 @@
     input[type="file"]{
       background:#2b2b2b;
       color:#fff;
-      padding:10px;
     }
     button{
       background:#1877f2;
       color:#fff;
       cursor:pointer;
       font-weight:bold;
+    }
+    button:hover{
+      opacity:.9;
     }
     #output{
       margin-top:20px;
@@ -64,14 +66,18 @@
       border-radius:8px;
       display:none;
     }
-    a{color:#4da3ff;}
+    a{
+      color:#4da3ff;
+    }
   </style>
 </head>
 <body>
+
 <div class="box">
   <h1>Smart Share Link Generator</h1>
 
   <input type="text" id="title" placeholder="Custom Title">
+  
   <textarea id="desc" placeholder="Custom Description"></textarea>
 
   <label>Select Image:</label>
@@ -81,7 +87,7 @@
 
   <input type="text" id="target" placeholder="Target URL (https://...)">
 
-  <button onclick="generateLink()">Generate Facebook Share Link</button>
+  <button id="generateBtn">Generate Facebook Share Link</button>
 
   <div id="output"></div>
 </div>
@@ -89,52 +95,95 @@
 <script>
 let uploadedImageData = "";
 
-document.getElementById("imageUpload").addEventListener("change", function(e){
+const imageUpload = document.getElementById("imageUpload");
+const preview = document.getElementById("preview");
+const generateBtn = document.getElementById("generateBtn");
+const output = document.getElementById("output");
+
+imageUpload.addEventListener("change", function(e) {
     const file = e.target.files[0];
-    if(!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(event){
-        uploadedImageData = event.target.result;
-
-        const preview = document.getElementById("preview");
-        preview.src = uploadedImageData;
-        preview.style.display = "block";
-    };
-    reader.readAsDataURL(file);
-});
-
-function generateLink(){
-    const title = encodeURIComponent(document.getElementById("title").value.trim());
-    const desc = encodeURIComponent(document.getElementById("desc").value.trim());
-    const target = encodeURIComponent(document.getElementById("target").value.trim());
-
-    if(!title || !desc || !target || !uploadedImageData){
-        alert("Fill all fields and upload image");
+    if (!file) {
+        uploadedImageData = "";
+        preview.style.display = "none";
         return;
     }
 
-    const image = encodeURIComponent(uploadedImageData);
+    const reader = new FileReader();
 
-    const basePath = window.location.origin + window.location.pathname.replace("index.html","");
-    const shareURL = ${basePath}share.html?t=${title}&d=${desc}&i=${image}&u=${target};
+    reader.onload = function(event) {
+        uploadedImageData = event.target.result;
 
-    document.getElementById("output").innerHTML = `
-      <p><strong>Generated Link:</strong></p>
-      <input type="text" value="${shareURL}" id="generatedLink" readonly style="width:100%;padding:10px;">
+        preview.src = uploadedImageData;
+        preview.style.display = "block";
+    };
+
+    reader.readAsDataURL(file);
+});
+
+generateBtn.addEventListener("click", function() {
+
+    const title = document.getElementById("title").value.trim();
+    const desc = document.getElementById("desc").value.trim();
+    const target = document.getElementById("target").value.trim();
+
+    if (!title || !desc || !target || !uploadedImageData) {
+        alert("Please fill all fields and upload image.");
+        return;
+    }
+
+    if (!target.startsWith("http://") && !target.startsWith("https://")) {
+        alert("Target URL must start with https:// or http://");
+        return;
+    }
+
+    const encodedTitle = encodeURIComponent(title);
+    const encodedDesc = encodeURIComponent(desc);
+    const encodedTarget = encodeURIComponent(target);
+    const encodedImage = encodeURIComponent(uploadedImageData);
+
+    const shareHTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${desc}">
+<meta property="og:image" content="${uploadedImageData}">
+<meta property="og:url" content="${target}">
+<meta property="og:type" content="website">
+
+<meta http-equiv="refresh" content="0;url=${target}">
+<script>
+window.location.replace("${target}");
+<\/script>
+</head>
+<body>
+Redirecting...
+</body>
+</html>`;
+
+    const blob = new Blob([shareHTML], {type: "text/html"});
+    const generatedURL = URL.createObjectURL(blob);
+
+    output.innerHTML = `
+      <p><strong>Your Generated Share Link:</strong></p>
+      <input type="text" id="generatedLink" value="${generatedURL}" readonly>
       <button onclick="copyLink()">Copy Link</button>
-      <br><br>
-      <a href="${shareURL}" target="_blank">Open Generated Page</a>
+      <a href="${generatedURL}" target="_blank">Open Generated Page</a>
     `;
-}
+});
 
-function copyLink(){
+function copyLink() {
     const copyText = document.getElementById("generatedLink");
     copyText.select();
     copyText.setSelectionRange(0, 99999);
     document.execCommand("copy");
-    alert("Link copied!");
+    alert("Link copied successfully!");
 }
 </script>
+
 </body>
 </html>
