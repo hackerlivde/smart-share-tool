@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Share Link Generator</title>
+  <style>
+    body{
+      font-family:Arial,sans-serif;
+      background:#111;
+      color:#fff;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      margin:0;
+      padding:20px;
+    }
+    .box{
+      background:#1c1c1c;
+      padding:25px;
+      border-radius:12px;
+      width:100%;
+      max-width:650px;
+      box-shadow:0 0 20px rgba(0,0,0,.4);
+    }
+    h1{text-align:center;margin-bottom:20px;}
+    input, textarea, button{
+      width:100%;
+      padding:12px;
+      margin:10px 0;
+      border:none;
+      border-radius:8px;
+      font-size:16px;
+      box-sizing:border-box;
+    }
+    input, textarea{
+      background:#2b2b2b;
+      color:#fff;
+    }
+    input[type="file"]{
+      background:#2b2b2b;
+      color:#fff;
+      padding:10px;
+    }
+    button{
+      background:#1877f2;
+      color:#fff;
+      cursor:pointer;
+      font-weight:bold;
+    }
+    #output{
+      margin-top:20px;
+      word-break:break-all;
+      background:#2b2b2b;
+      padding:12px;
+      border-radius:8px;
+    }
+    img.preview{
+      width:100%;
+      max-height:300px;
+      object-fit:contain;
+      margin-top:10px;
+      border-radius:8px;
+      display:none;
+    }
+    a{color:#4da3ff;}
+  </style>
+</head>
+<body>
+<div class="box">
+  <h1>Smart Share Link Generator</h1>
+
+  <input type="text" id="title" placeholder="Custom Title">
+  <textarea id="desc" placeholder="Custom Description"></textarea>
+
+  <label>Select Image:</label>
+  <input type="file" id="imageUpload" accept="image/*">
+
+  <img id="preview" class="preview">
+
+  <input type="text" id="target" placeholder="Target URL (https://...)">
+
+  <button onclick="generateLink()">Generate Facebook Share Link</button>
+
+  <div id="output"></div>
+</div>
+
+<script>
+let uploadedImageData = "";
+
+document.getElementById("imageUpload").addEventListener("change", function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event){
+        uploadedImageData = event.target.result;
+
+        const preview = document.getElementById("preview");
+        preview.src = uploadedImageData;
+        preview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+});
+
+function generateLink(){
+    const title = encodeURIComponent(document.getElementById("title").value);
+    const desc = encodeURIComponent(document.getElementById("desc").value);
+    const target = encodeURIComponent(document.getElementById("target").value);
+
+    if(!title || !desc || !target || !uploadedImageData){
+        alert("Fill all fields and upload image");
+        return;
+    }
+
+    const image = encodeURIComponent(uploadedImageData);
+
+    const shareURL = ${window.location.origin}${window.location.pathname.replace("index.html","")}share.html?t=${title}&d=${desc}&i=${image}&u=${target};
+
+    document.getElementById("output").innerHTML =
+      `Generated Link:<br><a href="${shareURL}" target="_blank">${shareURL}</a><br><br>
+      Paste this link on Facebook.`;
+}
+</script>
+</body>
+</html>
