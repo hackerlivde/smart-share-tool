@@ -105,9 +105,9 @@ document.getElementById("imageUpload").addEventListener("change", function(e){
 });
 
 function generateLink(){
-    const title = encodeURIComponent(document.getElementById("title").value);
-    const desc = encodeURIComponent(document.getElementById("desc").value);
-    const target = encodeURIComponent(document.getElementById("target").value);
+    const title = encodeURIComponent(document.getElementById("title").value.trim());
+    const desc = encodeURIComponent(document.getElementById("desc").value.trim());
+    const target = encodeURIComponent(document.getElementById("target").value.trim());
 
     if(!title || !desc || !target || !uploadedImageData){
         alert("Fill all fields and upload image");
@@ -116,11 +116,24 @@ function generateLink(){
 
     const image = encodeURIComponent(uploadedImageData);
 
-    const shareURL = ${window.location.origin}${window.location.pathname.replace("index.html","")}share.html?t=${title}&d=${desc}&i=${image}&u=${target};
+    const basePath = window.location.origin + window.location.pathname.replace("index.html","");
+    const shareURL = ${basePath}share.html?t=${title}&d=${desc}&i=${image}&u=${target};
 
-    document.getElementById("output").innerHTML =
-      `Generated Link:<br><a href="${shareURL}" target="_blank">${shareURL}</a><br><br>
-      Paste this link on Facebook.`;
+    document.getElementById("output").innerHTML = `
+      <p><strong>Generated Link:</strong></p>
+      <input type="text" value="${shareURL}" id="generatedLink" readonly style="width:100%;padding:10px;">
+      <button onclick="copyLink()">Copy Link</button>
+      <br><br>
+      <a href="${shareURL}" target="_blank">Open Generated Page</a>
+    `;
+}
+
+function copyLink(){
+    const copyText = document.getElementById("generatedLink");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    alert("Link copied!");
 }
 </script>
 </body>
